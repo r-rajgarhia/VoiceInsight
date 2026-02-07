@@ -3,6 +3,7 @@ from faster_whisper import WhisperModel
 import os
 from backend.sentiment import analyze_sentiment
 from backend.keywords import extract_keywords
+from backend.emotion import analyze_emotion
 
 # Initialize FastAPI application
 app = FastAPI(title="VoiceInsight")
@@ -32,7 +33,7 @@ async def transcribe_audio(file: UploadFile = File(...)):
 
     # Analyze sentiment of the transcribed text
     sentiment = analyze_sentiment(transcript)
-
+    emotion = analyze_emotion(transcript)
     keywords = extract_keywords(transcript)
 
     return {
@@ -40,5 +41,6 @@ async def transcribe_audio(file: UploadFile = File(...)):
         "language": info.language,
         "transcript": transcript,
         "sentiment": sentiment,
+        "emotion": emotion,
         "keywords": keywords
     }
