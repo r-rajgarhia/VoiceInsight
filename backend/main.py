@@ -44,3 +44,17 @@ async def transcribe_audio(file: UploadFile = File(...)):
         "emotion": emotion,
         "keywords": keywords
     }
+
+@app.get("/health")
+def health_check():
+    #Health check endpoint to verify server and models are running.
+    
+    return {
+        "status": "ok",
+        "message": "VoiceInsight API is running",
+        "models": {
+            "speech_to_text": "faster-whisper (small)",
+            "sentiment": "distilbert-sst2",
+            "emotion": "distilroberta-emotion"
+        }
+    }
