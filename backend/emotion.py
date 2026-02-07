@@ -8,17 +8,13 @@ emotion_classifier = pipeline(
 )
 
 def analyze_emotion(text: str):
-    """
-    Analyzes emotions in text and returns the most dominant emotion
-    with its confidence score.
-    """
+    results = emotion_classifier(text)
 
-    results = emotion_classifier(text)[0]
-
-    # Find emotion with highest score
-    top_emotion = max(results, key=lambda x: x["score"])
+    # If model returns a list, take first element
+    if isinstance(results, list):
+        results = results[0]
 
     return {
-        "emotion": top_emotion["label"],
-        "score": top_emotion["score"]
+        "label": results["label"],
+        "score": results["score"]
     }
