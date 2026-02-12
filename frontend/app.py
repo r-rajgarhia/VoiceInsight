@@ -11,6 +11,7 @@ st.set_page_config(
 )
 
 st.title("🎙️ VoiceInsight")
+st.subheader("AI Call Center Analysis Engine")
 st.write("Upload an audio file to transcribe and analyze emotion & sentiment.")
 
 # Backend API URL

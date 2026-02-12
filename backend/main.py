@@ -1,9 +1,15 @@
+from pyexpat import features
 from fastapi import FastAPI, UploadFile, File
 from faster_whisper import WhisperModel
 import os
+import sqlite3
 from backend.sentiment import analyze_sentiment
 from backend.keywords import extract_keywords
 from backend.emotion import analyze_emotion
+from backend.feature_builder import build_features
+from backend.logger import log_call_features
+from backend.predictor import predict_call_type
+
 
 # Initialize FastAPI application
 app = FastAPI(title="VoiceInsight")
@@ -36,14 +42,60 @@ async def transcribe_audio(file: UploadFile = File(...)):
     emotion = analyze_emotion(transcript)
     keywords = extract_keywords(transcript)
 
+    # Build features for logging and potential model training
+    features = build_features(
+    sentiment=sentiment,
+    emotion=emotion,
+    keywords=keywords,
+    transcript=transcript
+    )
+
+    # ML prediction
+    call_type = predict_call_type(features)
+    print("FEATURES:", features)
+    log_call_features(
+    features,
+    label=call_type
+    )
+
     return {
         "filename": file.filename,
         "language": info.language,
         "transcript": transcript,
         "sentiment": sentiment,
         "emotion": emotion,
-        "keywords": keywords
+        "keywords": keywords,
+        "predicted_call_type": call_type
     }
+
+def save_call(features: dict, label: str = None):
+    conn = sqlite3.connect("voiceinsight.db")
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        INSERT INTO calls (
+            transcript,
+            sentiment_score,
+            neutral,
+            angry,
+            happy,
+            keywords_count,
+            transcript_length,
+            label
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    """, (
+        features["transcript"],
+        features["sentiment_score"],
+        features["neutral"],
+        features["angry"],
+        features["happy"],
+        features["keywords_count"],
+        features["transcript_length"],
+        label
+    ))
+
+    conn.commit()
+    conn.close()
 
 @app.get("/health")
 def health_check():

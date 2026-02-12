@@ -1,0 +1,11 @@
+CREATE TABLE IF NOT EXISTS calls (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    transcript TEXT NOT NULL,
+    sentiment_score REAL,
+    neutral REAL,
+    angry REAL,
+    happy REAL,
+    keywords_count INTEGER,
+    transcript_length INTEGER,
+    label TEXT
+);
