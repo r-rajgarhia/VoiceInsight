@@ -3,7 +3,7 @@ import os
 
 DATASET_PATH = "data/call_features.csv"
 
-def log_call_features(features: dict, label: str):
+def log_call_features(features: dict, label: str, rule_label: str):
     file_exists = os.path.exists(DATASET_PATH)
 
     with open(DATASET_PATH, "a", newline="", encoding="utf-8") as f:

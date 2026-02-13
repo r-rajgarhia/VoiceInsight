@@ -40,11 +40,15 @@ if uploaded_file is not None:
             data = response.json()
             st.success("✅ Analysis completed successfully!")
 
+            # -------------------------------
             # Transcript
+            # -------------------------------
             st.subheader("📝 Call Transcript")
             st.write(data["transcript"])
 
+            # -------------------------------
             # AI Analysis (Sentiment & Emotion)
+            # -------------------------------
             st.subheader("🧠 AI Analysis")
             col1, col2 = st.columns(2)
 
@@ -62,45 +66,82 @@ if uploaded_file is not None:
                     delta=f"{data['emotion']['score']:.2f}"
                 )
 
+            # -------------------------------
             # Keywords
+            # -------------------------------
             st.subheader("🔑 Key Topics Detected")
             if data["keywords"]:
                 st.write(", ".join(data["keywords"]))
             else:
                 st.write("No significant keywords detected.")
 
-            # Call Type Prediction (ML Model)
-            st.subheader("📞 Call Type Prediction (ML Model)")
-            call_type = data["predicted_call_type"].lower()
+            # -------------------------------
+            # Call Type Predictions
+            # -------------------------------
+            st.subheader("📞 Call Type Classification")
 
-            if call_type == "sales":
-                st.success("💼 Sales Call")
-            elif call_type == "support":
-                st.warning("🛠 Customer Support Call")
-            elif call_type == "bad":
-                st.error("🚨 Negative / Problematic Call")
+            col3, col4 = st.columns(2)
+
+            ml_call_type = data["ml_prediction"].lower()
+            rule_call_type = data["rule_prediction"].lower()
+
+            with col3:
+                st.metric(
+                    label="🤖 ML Model Prediction",
+                    value=ml_call_type.upper()
+                )
+
+            with col4:
+                st.metric(
+                    label="🧠 Rule-based Prediction",
+                    value=rule_call_type.upper()
+                )
+
+            # -------------------------------
+            # 🔍 Comparison Insight (NEW)
+            # -------------------------------
+            st.subheader("🔍 Model Comparison Insight")
+
+            if ml_call_type == rule_call_type:
+                st.success(
+                    f"✅ Both models agree on **{ml_call_type.upper()}** — high confidence classification."
+                )
             else:
-                st.info(call_type.capitalize())
+                st.warning(
+                    f"""
+                    ⚠️ Model disagreement detected:
 
+                    • ML Model: **{ml_call_type.upper()}**  
+                    • Rule-based System: **{rule_call_type.upper()}**
+
+                    This case can be flagged for manual review or future retraining.
+                    """
+                )
+
+            # -------------------------------
             # AI Explanation
+            # -------------------------------
             st.subheader("🤖 How the AI Reached This Decision")
             st.write(
                 f"""
-                This call was analyzed using a multi-stage AI pipeline:
+                This call was analyzed using a **dual-decision AI pipeline**:
 
                 • Speech-to-text transcription (Whisper)  
                 • Sentiment analysis (Transformer model)  
-                • Emotion detection (Emotion classifier)  
+                • Emotion detection  
                 • Keyword extraction  
                 • Feature engineering  
-                • Call classification using a trained **XGBoost model**
+                • Call classification using a trained **XGBoost model**  
+                • Parallel rule-based validation for robustness  
 
-                Based on these signals, the system classified this call as
-                **{call_type.upper()}**.
+                The final prediction reflects the ML model output, while the
+                rule-based system provides interpretability and safety checks.
                 """
             )
 
+            # -------------------------------
             # Download analysis
+            # -------------------------------
             st.download_button(
                 label="⬇️ Download Analysis Report",
                 data=json.dumps(data, indent=2),

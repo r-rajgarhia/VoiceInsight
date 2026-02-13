@@ -9,6 +9,7 @@ from backend.emotion import analyze_emotion
 from backend.feature_builder import build_features
 from backend.logger import log_call_features
 from backend.predictor import predict_call_type
+from backend.predictor import predict_call_type_from_text
 
 
 # Initialize FastAPI application
@@ -49,13 +50,17 @@ async def transcribe_audio(file: UploadFile = File(...)):
     keywords=keywords,
     transcript=transcript
     )
-
     # ML prediction
-    call_type = predict_call_type(features)
+    ml_call_type, confidence = predict_call_type_from_text(transcript)
+
+    # Rule-based backup
+    rule_call_type = predict_call_type(features)
+
     print("FEATURES:", features)
     log_call_features(
     features,
-    label=call_type
+    label=ml_call_type,
+    rule_label=rule_call_type
     )
 
     return {
@@ -65,7 +70,8 @@ async def transcribe_audio(file: UploadFile = File(...)):
         "sentiment": sentiment,
         "emotion": emotion,
         "keywords": keywords,
-        "predicted_call_type": call_type
+        "ml_prediction": ml_call_type,
+        "rule_prediction": rule_call_type
     }
 
 def save_call(features: dict, label: str = None):
